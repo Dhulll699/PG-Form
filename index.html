@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Form Kehadiran Tamu</title>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #22c55e 0%, #16a34a 50%, #15803d 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: #333;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      max-width: 500px;
+      width: 100%;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    h1 {
+      color: #2d5016;
+      margin-bottom: 30px;
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #56ab2f, #2d5016);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .checkbox-group {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 15px;
+      background: #f0f9ff;
+      border-radius: 12px;
+      border: 2px solid #bbf7d0;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      pointer-events: auto;
+      position: relative;
+      z-index: 10;
+    }
+
+    .checkbox-item:hover {
+      border-color: #56ab2f;
+      background: #dcfce7;
+      transform: translateY(-2px);
+    }
+
+    .checkbox-item input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      accent-color: #56ab2f;
+      cursor: pointer;
+      pointer-events: auto;
+      position: relative;
+      z-index: 20;
+    }
+
+    .checkbox-item input[type="checkbox"]:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .checkbox-item.disabled {
+      opacity: 0.7;
+      background: #f3f4f6;
+      border-color: #d1d5db;
+      cursor: not-allowed;
+    }
+
+    .checkbox-item.disabled:hover {
+      transform: none;
+      border-color: #d1d5db;
+      background: #f3f4f6;
+    }
+
+    .checkbox-item label {
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      flex: 1;
+      color: #2d5016;
+      pointer-events: auto;
+      position: relative;
+      z-index: 15;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .wali-form {
+      background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+      padding: 25px;
+      border-radius: 15px;
+      margin: 20px 0;
+      color: white;
+      animation: slideDown 0.5s ease;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .wali-form h3 {
+      margin-bottom: 20px;
+      font-size: 1.2rem;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    input[type="text"] {
+      padding: 15px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      background: rgba(255, 255, 255, 0.9);
+      color: #2d5016;
+      transition: all 0.3s ease;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(86, 171, 47, 0.3);
+      transform: scale(1.02);
+    }
+
+    button {
+      padding: 15px 30px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      pointer-events: auto;
+      z-index: 10;
+    }
+
+    button:before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+      pointer-events: none;
+    }
+
+    button:hover:before {
+      left: 100%;
+    }
+
+    #submitBiodata {
+      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+      color: white;
+      width: 100%;
+      pointer-events: auto;
+    }
+
+    #submitBiodata:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(34, 197, 94, 0.3);
+    }
+
+    #submitBiodata:disabled {
+      background: #16a34a;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+      pointer-events: none;
+    }
+
+    #hadirBtn {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: white;
+      font-size: 18px;
+      padding: 20px 40px;
+      margin: 20px 0;
+      width: 100%;
+      max-width: 300px;
+      pointer-events: auto;
+    }
+
+    #hadirBtn:hover:not(:disabled) {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 30px rgba(34, 197, 94, 0.4);
+    }
+
+    #hadirBtn.disabled {
+      background: #cbd5e0;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+      pointer-events: none;
+    }
+
+    #hadirBtn.active {
+      background: linear-gradient(135deg, #16a34a, #15803d);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(22, 163, 74, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(22, 163, 74, 0);
+      }
+    }
+
+    .success-message {
+      background: linear-gradient(135deg, #16a34a, #15803d);
+      color: white;
+      padding: 15px;
+      border-radius: 10px;
+      margin: 15px 0;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .status-section {
+      margin-top: 20px;
+      padding: 15px;
+      background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+      border-radius: 10px;
+      border: 1px solid rgba(86, 171, 47, 0.2);
+      text-align: center;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .status-dot {
+      font-size: 20px;
+    }
+
+    #statusText {
+      font-weight: 600;
+      color: #2d5016;
+    }
+
+    .last-update {
+      color: #666;
+      font-size: 12px;
+    }
+
+    .sync-indicator {
+      margin-top: 10px;
+      padding: 8px;
+      background: rgba(34, 197, 94, 0.1);
+      border-radius: 6px;
+      border: 1px solid rgba(34, 197, 94, 0.2);
+      font-size: 12px;
+      color: #15803d;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 25px;
+        margin: 10px;
+      }
+      
+      h1 {
+        font-size: 2rem;
+      }
+      
+      #hadirBtn {
+        padding: 18px 30px;
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Form Kehadiran Tamu</h1>
+
+    <div class="checkbox-group">
+      <div class="checkbox-item">
+        <input type="checkbox" id="undanganCheckbox" />
+        <label for="undanganCheckbox">Saya adalah tamu undangan</label>
+      </div>
+      <div class="checkbox-item">
+        <input type="checkbox" id="waliCheckbox" />
+        <label for="waliCheckbox">Saya adalah wali santri</label>
+      </div>
+    </div>
+
+    <div id="waliForm" class="hidden wali-form">
+      <h3>📝 Isi Biodata Santri</h3>
+      <div class="input-group">
+        <input type="text" id="namaSantri" placeholder="Nama Lengkap Santri" />
+        <input type="text" id="kelasSantri" placeholder="Kelas" />
+      </div>
+      <button id="submitBiodata">Submit Biodata</button>
+    </div>
+
+    <button id="hadirBtn" class="disabled" disabled>✅ Saya Hadir</button>
+
+    <!-- Status Section -->
+    <div class="status-section">
+      <div class="status-indicator">
+        <span id="connectionStatus" class="status-dot">✅</span>
+        <span id="statusText">Aplikasi siap digunakan</span>
+      </div>
+      <div class="last-update">
+        <small>Update terakhir: <span id="lastUpdate">-</span></small>
+      </div>
+      <div class="sync-indicator">
+        ✅ Data akan dikirim ke admin panel
+      </div>
+      <div style="margin-top: 15px;">
+        <a href="admin.html" class="btn btn-primary" style="text-decoration: none; display: inline-block; padding: 10px 20px; background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; border-radius: 8px; font-weight: 600; transition: all 0.3s ease;">
+          📊 Lihat Data Tamu
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Wait for DOM to be fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('🚀 DOM loaded, starting initialization...');
+      
+      // Get all DOM elements
+      const undanganCheckbox = document.getElementById('undanganCheckbox');
+      const waliCheckbox = document.getElementById('waliCheckbox');
+      const waliForm = document.getElementById('waliForm');
+      const submitBiodata = document.getElementById('submitBiodata');
+      const namaSantri = document.getElementById('namaSantri');
+      const kelasSantri = document.getElementById('kelasSantri');
+      const hadirBtn = document.getElementById('hadirBtn');
+      const connectionStatus = document.getElementById('connectionStatus');
+      const statusText = document.getElementById('statusText');
+      const lastUpdate = document.getElementById('lastUpdate');
+
+      // Debug: Check if all elements are found
+      console.log('🔍 Checking elements:', {
+        undanganCheckbox: !!undanganCheckbox,
+        waliCheckbox: !!waliCheckbox,
+        waliForm: !!waliForm,
+        submitBiodata: !!submitBiodata,
+        namaSantri: !!namaSantri,
+        kelasSantri: !!kelasSantri,
+        hadirBtn: !!hadirBtn,
+        connectionStatus: !!connectionStatus,
+        statusText: !!statusText,
+        lastUpdate: !!lastUpdate
+      });
+
+      // Check if all required elements exist
+      if (!undanganCheckbox || !waliCheckbox || !hadirBtn || !waliForm || !submitBiodata) {
+        console.error('❌ Required elements not found!');
+        console.error('Missing elements:', {
+          undanganCheckbox: !undanganCheckbox,
+          waliCheckbox: !waliCheckbox,
+          hadirBtn: !hadirBtn,
+          waliForm: !waliForm,
+          submitBiodata: !submitBiodata
+        });
+        alert('Error: Beberapa elemen tidak ditemukan. Silakan refresh halaman.');
+        return;
+      }
+
+      console.log('✅ All elements found successfully!');
+      
+      // Additional validation for critical elements
+      if (!statusText) {
+        console.warn('⚠️ statusText element not found - status updates may not work');
+      }
+
+      // Variables
+      let biodataSubmitted = false;
+      let currentUser = null;
+
+      // Generate unique user ID
+      function generateUserId() {
+        return 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      }
+
+      // Update status
+      function updateStatus(message) {
+        if (statusText) {
+          statusText.textContent = message;
+        }
+      }
+
+      // Update last update time
+      function updateLastUpdateTime() {
+        if (lastUpdate) {
+          const now = new Date();
+          lastUpdate.textContent = now.toLocaleTimeString('id-ID');
+        }
+      }
+
+      // Check if user already attended (localStorage)
+      function checkUserAttendance() {
+        currentUser = localStorage.getItem('userId');
+        if (currentUser) {
+          hadirBtn.textContent = '✅ Anda sudah hadir';
+          hadirBtn.classList.add('active');
+          hadirBtn.disabled = true;
+          console.log('✅ User already attended (localStorage)');
+          return true;
+        }
+        return false;
+      }
+
+      // Initialize functionality
+      function initializeApp() {
+        try {
+          console.log('🚀 Initializing application...');
+          updateStatus('Menginisialisasi aplikasi...');
+          
+          // Generate or get user ID
+          let userId = localStorage.getItem('userId');
+          if (!userId) {
+            userId = generateUserId();
+            localStorage.setItem('userId', userId);
+            console.log('🆔 Generated new user ID:', userId);
+          } else {
+            console.log('🆔 Using existing user ID:', userId);
+          }
+          currentUser = userId;
+
+          // Check if user already attended
+          checkUserAttendance();
+          
+          updateStatus('Aplikasi siap digunakan');
+          updateLastUpdateTime();
+          console.log('✅ Application initialized successfully');
+        } catch (error) {
+          console.error('❌ Error initializing application:', error);
+          updateStatus('Gagal menginisialisasi aplikasi');
+        }
+      }
+
+      // Function to enable attendance button
+      function enableHadir() {
+        console.log('🔓 Enabling attendance button...');
+        hadirBtn.disabled = false;
+        hadirBtn.classList.remove('disabled');
+        console.log('✅ Button enabled successfully');
+      }
+
+      // Function to disable attendance button
+      function disableHadir() {
+        console.log('🔒 Disabling attendance button...');
+        hadirBtn.disabled = true;
+        hadirBtn.classList.add('disabled');
+        console.log('✅ Button disabled successfully');
+      }
+
+      // Checkbox event listeners
+      undanganCheckbox.addEventListener('change', function() {
+        console.log('📋 Undangan checkbox changed:', this.checked);
+        
+        if (this.checked) {
+          // Uncheck the other checkbox
+          waliCheckbox.checked = false;
+          waliForm.classList.add('hidden');
+          biodataSubmitted = false;
+          
+          // Disable both checkboxes after selection
+          undanganCheckbox.disabled = true;
+          waliCheckbox.disabled = true;
+          
+          // Add visual feedback for disabled state
+          undanganCheckbox.closest('.checkbox-item').classList.add('disabled');
+          waliCheckbox.closest('.checkbox-item').classList.add('disabled');
+          
+          // Enable attendance button immediately for undangan
+          enableHadir();
+          console.log('✅ Undangan selected - button enabled, checkboxes disabled');
+        } else {
+          // Prevent unchecking - once selected, cannot be changed
+          this.checked = true;
+          console.log('❌ Cannot uncheck - selection is final');
+        }
+      });
+
+      waliCheckbox.addEventListener('change', function() {
+        console.log('📋 Wali checkbox changed:', this.checked);
+        
+        if (this.checked) {
+          // Uncheck the other checkbox
+          undanganCheckbox.checked = false;
+          waliForm.classList.remove('hidden');
+          biodataSubmitted = false;
+          
+          // Disable both checkboxes after selection
+          undanganCheckbox.disabled = true;
+          waliCheckbox.disabled = true;
+          
+          // Add visual feedback for disabled state
+          undanganCheckbox.closest('.checkbox-item').classList.add('disabled');
+          waliCheckbox.closest('.checkbox-item').classList.add('disabled');
+          
+          // Keep button disabled until biodata is submitted
+          disableHadir();
+          console.log('✅ Wali selected - form shown, checkboxes disabled, button remains disabled');
+        } else {
+          // Prevent unchecking - once selected, cannot be changed
+          this.checked = true;
+          console.log('❌ Cannot uncheck - selection is final');
+        }
+      });
+
+      // Submit biodata button event listener
+      submitBiodata.addEventListener('click', function() {
+        console.log('📝 Submit biodata clicked');
+        
+        if (namaSantri.value && kelasSantri.value) {
+          console.log('✅ Biodata complete, saving...');
+          
+          submitBiodata.textContent = '✔️ Data Terkirim';
+          submitBiodata.disabled = true;
+          biodataSubmitted = true;
+          
+          // Enable attendance button only after biodata is submitted
+          enableHadir();
+          console.log('✅ Biodata submitted - button enabled');
+        } else {
+          alert('Mohon lengkapi biodata terlebih dahulu.');
+          console.log('❌ Biodata incomplete');
+        }
+      });
+
+      // Attendance button event listener
+      hadirBtn.addEventListener('click', function() {
+        console.log('🎯 Attendance button clicked!');
+        
+        // Debug: Check button state
+        console.log('🔍 Button state:', {
+          disabled: this.disabled,
+          text: this.textContent,
+          classes: this.className
+        });
+        
+        if (this.disabled) {
+          console.log('❌ Button is disabled');
+          return;
+        }
+        
+        // Debug: Check form state
+        console.log('🔍 Form state:', {
+          undanganChecked: undanganCheckbox.checked,
+          waliChecked: waliCheckbox.checked,
+          biodataSubmitted: biodataSubmitted,
+          namaSantri: namaSantri.value,
+          kelasSantri: kelasSantri.value
+        });
+        
+        // Validate wali santri must submit biodata
+        if (waliCheckbox.checked && !biodataSubmitted) {
+          alert('Mohon lengkapi biodata santri terlebih dahulu.');
+          console.log('❌ Wali santri without biodata');
+          return;
+        }
+        
+        // Debug: Check if user is selected
+        if (!undanganCheckbox.checked && !waliCheckbox.checked) {
+          alert('Mohon pilih jenis tamu terlebih dahulu.');
+          console.log('❌ No user type selected');
+          return;
+        }
+        
+        console.log('✅ Processing attendance...');
+        
+        try {
+          // Disable button immediately to prevent multiple clicks
+          this.disabled = true;
+          this.textContent = '⏳ Memproses...';
+          
+          // Prepare attendance data
+          const attendanceData = {
+            user_id: currentUser,
+            user_type: undanganCheckbox.checked ? 'undangan' : 'wali_santri',
+            timestamp: new Date().toISOString(),
+            device_info: navigator.userAgent
+          };
+
+          if (waliCheckbox.checked && biodataSubmitted) {
+            attendanceData.student_name = namaSantri.value;
+            attendanceData.student_class = kelasSantri.value;
+          }
+
+          console.log('💾 Saving attendance data to localStorage:', attendanceData);
+
+          // Save to localStorage with unique key for admin to read
+          const attendanceKey = 'attendance_' + Date.now();
+          localStorage.setItem(attendanceKey, JSON.stringify(attendanceData));
+          
+          // Update UI - button remains disabled permanently
+          this.textContent = '✅ Anda sudah hadir';
+          this.classList.add('active');
+          this.disabled = true;
+          
+          // Show success message
+          const successMsg = document.createElement('div');
+          successMsg.className = 'success-message';
+          successMsg.textContent = '🎉 Terima kasih! Kehadiran Anda telah tercatat dan akan dikirim ke admin panel.';
+          this.parentNode.insertBefore(successMsg, this.nextSibling);
+          
+          updateStatus('Data berhasil dikirim ke admin panel');
+          updateLastUpdateTime();
+          
+          console.log('✅ Attendance recorded successfully!');
+          
+        } catch (error) {
+          console.error('❌ Error recording attendance:', error);
+          
+          // Re-enable button on error
+          this.disabled = false;
+          this.textContent = '✅ Saya Hadir';
+          
+          // Show specific error message
+          let errorMessage = 'Gagal mencatat kehadiran. Silakan coba lagi.';
+          
+          if (error.message) {
+            if (error.message.includes('duplicate key')) {
+              errorMessage = 'Anda sudah mencatat kehadiran sebelumnya.';
+            } else if (error.message.includes('network')) {
+              errorMessage = 'Gagal terhubung ke server. Cek koneksi internet Anda.';
+            } else if (error.message.includes('permission')) {
+              errorMessage = 'Tidak memiliki izin untuk mencatat kehadiran.';
+            }
+          }
+          
+          alert(errorMessage);
+        }
+      });
+
+      // Initialize application
+      initializeApp();
+      
+      console.log('🎉 All event listeners set up successfully!');
+    });
+  </script>
+</body>
+</html>
