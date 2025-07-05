@@ -333,6 +333,73 @@
         font-size: 16px;
       }
     }
+
+    /* Mobile-specific optimizations */
+    .mobile-optimized .checkbox-item {
+      min-height: 60px;
+      padding: 20px;
+    }
+
+    .mobile-optimized .checkbox-item input[type="checkbox"] {
+      width: 24px;
+      height: 24px;
+    }
+
+    .mobile-optimized .checkbox-item label {
+      font-size: 18px;
+      line-height: 1.4;
+    }
+
+    .mobile-optimized input[type="text"] {
+      font-size: 18px;
+      padding: 18px;
+      min-height: 50px;
+    }
+
+    .mobile-optimized button {
+      min-height: 50px;
+      font-size: 18px;
+      padding: 18px 30px;
+    }
+
+    .mobile-optimized #hadirBtn {
+      min-height: 60px;
+      font-size: 20px;
+      padding: 20px 40px;
+    }
+
+    /* Touch-friendly improvements */
+    .mobile-optimized .checkbox-item:hover {
+      transform: none;
+    }
+
+    .mobile-optimized button:hover {
+      transform: none;
+    }
+
+    .mobile-optimized button:active {
+      transform: scale(0.98);
+    }
+
+    /* iOS Safari specific fixes */
+    @supports (-webkit-touch-callout: none) {
+      .mobile-optimized input[type="text"] {
+        -webkit-appearance: none;
+        border-radius: 10px;
+      }
+      
+      .mobile-optimized button {
+        -webkit-appearance: none;
+        border-radius: 12px;
+      }
+    }
+
+    /* Android Chrome specific fixes */
+    @media screen and (-webkit-min-device-pixel-ratio: 0) {
+      .mobile-optimized input[type="text"]:focus {
+        transform: none;
+      }
+    }
   </style>
 </head>
 <body>
@@ -385,6 +452,18 @@
     // Wait for DOM to be fully loaded
     document.addEventListener('DOMContentLoaded', function() {
       console.log('🚀 DOM loaded, starting initialization...');
+      
+      // Mobile browser detection and optimization
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const isAndroid = /Android/.test(navigator.userAgent);
+      
+      console.log('📱 Device detection:', {
+        isMobile: isMobile,
+        isIOS: isIOS,
+        isAndroid: isAndroid,
+        userAgent: navigator.userAgent
+      });
       
       // Get all DOM elements
       const undanganCheckbox = document.getElementById('undanganCheckbox');
@@ -446,6 +525,18 @@
       function updateStatus(message) {
         if (statusText) {
           statusText.textContent = message;
+          
+          // Mobile-specific status updates
+          if (isMobile) {
+            // Add mobile indicator
+            const mobileIndicator = isIOS ? '📱' : '📱';
+            statusText.textContent = `${mobileIndicator} ${message}`;
+            
+            // Update connection status for mobile
+            if (connectionStatus) {
+              connectionStatus.textContent = '📶';
+            }
+          }
         }
       }
 
@@ -470,29 +561,207 @@
         return false;
       }
 
-      // Initialize functionality
+      // Enhanced localStorage with mobile optimization
+      function saveToLocalStorage(key, data) {
+        try {
+          // For mobile browsers, use multiple storage methods
+          const jsonData = JSON.stringify(data);
+          
+          // Primary: localStorage
+          localStorage.setItem(key, jsonData);
+          
+          // Secondary: sessionStorage (for better mobile compatibility)
+          sessionStorage.setItem(key, jsonData);
+          
+          // For iOS Safari, try additional methods
+          if (isIOS) {
+            try {
+              // Use IndexedDB as fallback for iOS
+              if ('indexedDB' in window) {
+                const request = indexedDB.open('AttendanceDB', 1);
+                request.onupgradeneeded = function() {
+                  const db = request.result;
+                  if (!db.objectStoreNames.contains('attendance')) {
+                    db.createObjectStore('attendance', { keyPath: 'key' });
+                  }
+                };
+                request.onsuccess = function() {
+                  const db = request.result;
+                  const transaction = db.transaction(['attendance'], 'readwrite');
+                  const store = transaction.objectStore('attendance');
+                  store.put({ key: key, data: jsonData });
+                };
+              }
+            } catch (e) {
+              console.warn('⚠️ IndexedDB fallback failed:', e);
+            }
+          }
+          
+          console.log('✅ Data saved successfully to multiple storage methods');
+          return true;
+        } catch (error) {
+          console.error('❌ Error saving data:', error);
+          
+          // Fallback: Try to save to memory cache
+          try {
+            if (!window.attendanceCache) {
+              window.attendanceCache = {};
+            }
+            window.attendanceCache[key] = data;
+            console.log('✅ Data saved to memory cache as fallback');
+            return true;
+          } catch (fallbackError) {
+            console.error('❌ All storage methods failed:', fallbackError);
+            return false;
+          }
+        }
+      }
+
+      // Enhanced data retrieval with mobile optimization
+      function getFromLocalStorage(key) {
+        try {
+          // Try localStorage first
+          let data = localStorage.getItem(key);
+          if (data) {
+            return JSON.parse(data);
+          }
+          
+          // Try sessionStorage
+          data = sessionStorage.getItem(key);
+          if (data) {
+            return JSON.parse(data);
+          }
+          
+          // Try memory cache
+          if (window.attendanceCache && window.attendanceCache[key]) {
+            return window.attendanceCache[key];
+          }
+          
+          // For iOS, try IndexedDB
+          if (isIOS && 'indexedDB' in window) {
+            return new Promise((resolve) => {
+              const request = indexedDB.open('AttendanceDB', 1);
+              request.onsuccess = function() {
+                const db = request.result;
+                const transaction = db.transaction(['attendance'], 'readonly');
+                const store = transaction.objectStore('attendance');
+                const getRequest = store.get(key);
+                getRequest.onsuccess = function() {
+                  if (getRequest.result) {
+                    resolve(JSON.parse(getRequest.result.data));
+                  } else {
+                    resolve(null);
+                  }
+                };
+              };
+            });
+          }
+          
+          return null;
+        } catch (error) {
+          console.error('❌ Error retrieving data:', error);
+          return null;
+        }
+      }
+
+      // Mobile-optimized attendance submission
+      function submitAttendanceMobile(attendanceData) {
+        return new Promise((resolve, reject) => {
+          console.log('📱 Mobile-optimized attendance submission...');
+          
+          // Show loading state
+          hadirBtn.textContent = '⏳ Mengirim data...';
+          hadirBtn.disabled = true;
+          
+          // Multiple submission attempts for mobile reliability
+          let attempts = 0;
+          const maxAttempts = 3;
+          
+          function attemptSubmission() {
+            attempts++;
+            console.log(`📱 Submission attempt ${attempts}/${maxAttempts}`);
+            
+            try {
+              // Generate unique key
+              const attendanceKey = 'attendance_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+              
+              // Save data with enhanced storage
+              const saveSuccess = saveToLocalStorage(attendanceKey, attendanceData);
+              
+              if (saveSuccess) {
+                console.log('✅ Mobile submission successful');
+                
+                // Additional mobile-specific optimizations
+                if (isMobile) {
+                  // Force UI update
+                  setTimeout(() => {
+                    updateStatus('Data berhasil dikirim (Mobile Optimized)');
+                    updateLastUpdateTime();
+                  }, 100);
+                  
+                  // Vibrate on success (if supported)
+                  if ('vibrate' in navigator) {
+                    navigator.vibrate(200);
+                  }
+                }
+                
+                resolve(true);
+              } else {
+                throw new Error('Storage failed');
+              }
+            } catch (error) {
+              console.error(`❌ Submission attempt ${attempts} failed:`, error);
+              
+              if (attempts < maxAttempts) {
+                // Retry with delay
+                setTimeout(attemptSubmission, 1000 * attempts);
+              } else {
+                reject(new Error('All submission attempts failed'));
+              }
+            }
+          }
+          
+          attemptSubmission();
+        });
+      }
+
+      // Mobile-optimized initialization
       function initializeApp() {
         try {
-          console.log('🚀 Initializing application...');
-          updateStatus('Menginisialisasi aplikasi...');
+          console.log('🚀 Initializing application with mobile optimizations...');
+          updateStatus('Menginisialisasi aplikasi (Mobile Optimized)...');
           
-          // Generate or get user ID
-          let userId = localStorage.getItem('userId');
+          // Mobile-specific initialization
+          if (isMobile) {
+            // Prevent zoom on input focus for mobile
+            const viewport = document.querySelector('meta[name=viewport]');
+            if (viewport) {
+              viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+            }
+            
+            // Add touch-friendly styles
+            document.body.classList.add('mobile-optimized');
+            
+            console.log('📱 Mobile optimizations applied');
+          }
+          
+          // Generate or get user ID with mobile optimization
+          let userId = getFromLocalStorage('userId');
           if (!userId) {
             userId = generateUserId();
-            localStorage.setItem('userId', userId);
-            console.log('🆔 Generated new user ID:', userId);
+            saveToLocalStorage('userId', userId);
+            console.log('🆔 Generated new user ID (Mobile):', userId);
           } else {
-            console.log('🆔 Using existing user ID:', userId);
+            console.log('🆔 Using existing user ID (Mobile):', userId);
           }
           currentUser = userId;
 
           // Check if user already attended
           checkUserAttendance();
           
-          updateStatus('Aplikasi siap digunakan');
+          updateStatus('Aplikasi siap digunakan (Mobile Optimized)');
           updateLastUpdateTime();
-          console.log('✅ Application initialized successfully');
+          console.log('✅ Application initialized successfully with mobile optimizations');
         } catch (error) {
           console.error('❌ Error initializing application:', error);
           updateStatus('Gagal menginisialisasi aplikasi');
@@ -590,15 +859,16 @@
         }
       });
 
-      // Attendance button event listener
+      // Enhanced attendance button event listener with mobile optimization
       hadirBtn.addEventListener('click', function() {
-        console.log('🎯 Attendance button clicked!');
+        console.log('🎯 Attendance button clicked! (Mobile Optimized)');
         
         // Debug: Check button state
         console.log('🔍 Button state:', {
           disabled: this.disabled,
           text: this.textContent,
-          classes: this.className
+          classes: this.className,
+          isMobile: isMobile
         });
         
         if (this.disabled) {
@@ -629,76 +899,72 @@
           return;
         }
         
-        console.log('✅ Processing attendance...');
+        console.log('✅ Processing attendance (Mobile Optimized)...');
         
-        try {
-          // Disable button immediately to prevent multiple clicks
-          this.disabled = true;
-          this.textContent = '⏳ Memproses...';
-          
-          // Prepare attendance data
-          const attendanceData = {
-            user_id: currentUser,
-            user_type: undanganCheckbox.checked ? 'undangan' : 'wali_santri',
-            timestamp: new Date().toISOString(),
-            device_info: navigator.userAgent
-          };
+        // Prepare attendance data
+        const attendanceData = {
+          user_id: currentUser,
+          user_type: undanganCheckbox.checked ? 'undangan' : 'wali_santri',
+          timestamp: new Date().toISOString(),
+          device_info: navigator.userAgent,
+          mobile_optimized: isMobile,
+          platform: isIOS ? 'iOS' : isAndroid ? 'Android' : 'Desktop'
+        };
 
-          if (waliCheckbox.checked && biodataSubmitted) {
-            attendanceData.student_name = namaSantri.value;
-            attendanceData.student_class = kelasSantri.value;
-          }
-
-          console.log('💾 Saving attendance data to localStorage:', attendanceData);
-
-          // Save to localStorage with unique key for admin to read
-          const attendanceKey = 'attendance_' + Date.now();
-          localStorage.setItem(attendanceKey, JSON.stringify(attendanceData));
-          
-          // Update UI - button remains disabled permanently
-          this.textContent = '✅ Anda sudah hadir';
-          this.classList.add('active');
-          this.disabled = true;
-          
-          // Show success message
-          const successMsg = document.createElement('div');
-          successMsg.className = 'success-message';
-          successMsg.textContent = '🎉 Terima kasih! Kehadiran Anda telah tercatat dan akan dikirim ke admin panel.';
-          this.parentNode.insertBefore(successMsg, this.nextSibling);
-          
-          updateStatus('Data berhasil dikirim ke admin panel');
-          updateLastUpdateTime();
-          
-          console.log('✅ Attendance recorded successfully!');
-          
-        } catch (error) {
-          console.error('❌ Error recording attendance:', error);
-          
-          // Re-enable button on error
-          this.disabled = false;
-          this.textContent = '✅ Saya Hadir';
-          
-          // Show specific error message
-          let errorMessage = 'Gagal mencatat kehadiran. Silakan coba lagi.';
-          
-          if (error.message) {
-            if (error.message.includes('duplicate key')) {
-              errorMessage = 'Anda sudah mencatat kehadiran sebelumnya.';
-            } else if (error.message.includes('network')) {
-              errorMessage = 'Gagal terhubung ke server. Cek koneksi internet Anda.';
-            } else if (error.message.includes('permission')) {
-              errorMessage = 'Tidak memiliki izin untuk mencatat kehadiran.';
-            }
-          }
-          
-          alert(errorMessage);
+        if (waliCheckbox.checked && biodataSubmitted) {
+          attendanceData.student_name = namaSantri.value;
+          attendanceData.student_class = kelasSantri.value;
         }
+
+        console.log('💾 Saving attendance data (Mobile):', attendanceData);
+
+        // Use mobile-optimized submission
+        submitAttendanceMobile(attendanceData)
+          .then(() => {
+            // Success handling
+            this.textContent = '✅ Anda sudah hadir';
+            this.classList.add('active');
+            this.disabled = true;
+            
+            // Show success message
+            const successMsg = document.createElement('div');
+            successMsg.className = 'success-message';
+            successMsg.textContent = '🎉 Terima kasih! Kehadiran Anda telah tercatat dan akan dikirim ke admin panel. (Mobile Optimized)';
+            this.parentNode.insertBefore(successMsg, this.nextSibling);
+            
+            updateStatus('Data berhasil dikirim ke admin panel (Mobile)');
+            updateLastUpdateTime();
+            
+            console.log('✅ Attendance recorded successfully (Mobile)!');
+          })
+          .catch((error) => {
+            console.error('❌ Error recording attendance (Mobile):', error);
+            
+            // Re-enable button on error
+            this.disabled = false;
+            this.textContent = '✅ Saya Hadir';
+            
+            // Show specific error message for mobile
+            let errorMessage = 'Gagal mencatat kehadiran. Silakan coba lagi.';
+            
+            if (error.message) {
+              if (error.message.includes('network')) {
+                errorMessage = 'Gagal terhubung. Cek koneksi internet Anda.';
+              } else if (error.message.includes('storage')) {
+                errorMessage = 'Gagal menyimpan data. Coba refresh halaman.';
+              } else if (error.message.includes('mobile')) {
+                errorMessage = 'Masalah kompatibilitas mobile. Coba browser lain.';
+              }
+            }
+            
+            alert(errorMessage);
+          });
       });
 
-      // Initialize application
+      // Initialize application with mobile optimizations
       initializeApp();
       
-      console.log('🎉 All event listeners set up successfully!');
+      console.log('🎉 All event listeners set up successfully (Mobile Optimized)!');
     });
   </script>
 </body>
